@@ -1,10 +1,5 @@
-from collections import deque, namedtuple
-from typing import List
-from agent_code.dnq.definition import strtoint, buildnet, transformfield
+from agent_code.dnq.definition import strtoint, buildnet, transformfield, np, deque, namedtuple, List, e
 
-import events as e
-import numpy as np
-import random
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
@@ -15,7 +10,7 @@ def setup_training(self):
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
     self.gamma=0.6
     self.temp=1
-    self.epsilon=0.3
+    self.epsilon=0.15
     if self.neednew==True:
         self.model=buildnet()
     self.target=buildnet()
@@ -62,4 +57,5 @@ def reward_from_events(self, events: List[str]) -> int:
         if event in game_rewards:
             reward_sum += game_rewards[event]
     return reward_sum
+
 

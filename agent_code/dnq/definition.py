@@ -1,6 +1,10 @@
 import numpy as np
+import os
+import events as e
+from collections import deque, namedtuple
+from typing import List
+from tensorflow import convert_to_tensor as ct
 from tensorflow.keras.models import load_model
-import tensorflow as tf
 from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.optimizers import Adam
@@ -23,7 +27,7 @@ def transformfield(game_state):
             if other[2]==True:
                 playerfield[other[3]]=-1
         features=np.array([fieldstate,playerfield])
-        return tf.convert_to_tensor(features.reshape(1,-1))
+        return ct(features.reshape(1,-1))
 
 def action(self,p):
     if self.epsilon>np.random.rand():
