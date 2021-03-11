@@ -30,10 +30,8 @@ def transformfield(game_state):
 def buildnet():
     model=Sequential()
     model.add(Input(shape=(17*17*2,)))
-    model.add(Dense(700,activation="relu"))
-    model.add(Dense(700,activation="relu"))
-    model.add(Dense(500,activation="relu"))
-    model.add(Dense(300,activation="relu"))
+    model.add(Dense(600,activation="relu"))
+    model.add(Dense(600,activation="relu"))
     model.add(Dense(6,activation="linear"))
     model.compile(loss='mse', optimizer=Adam(learning_rate=0.01))
     return model
