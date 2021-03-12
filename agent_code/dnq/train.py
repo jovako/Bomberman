@@ -7,7 +7,7 @@ from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow import convert_to_tensor as ct
 
-TRANSITION_HISTORY_SIZE = 20
+TRANSITION_HISTORY_SIZE = 300
 
 def transformfield(game_state):
         if game_state==None:
