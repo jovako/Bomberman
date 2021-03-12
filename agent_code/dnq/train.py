@@ -53,8 +53,7 @@ def strtoint(action):
 
 def setup_training(self):
     self.gamma=0.6
-    self.temp=10
-    self.epsilon=0.15
+    self.epsilon=0.2
     if self.neednew==True:
         self.model=buildnet()
     self.target=buildnet()
@@ -72,8 +71,6 @@ def game_events_occurred(self, old_game_state, self_action, new_game_state, even
         self.rewards.append(reward_from_events(self,events))
     
 def end_of_round(self, last_game_state, last_action, events):
-    if self.temp>0.01:
-        self.temp=self.temp*0.99995
     self.oldfields.append(transformfield(last_game_state))
     self.actions.append(strtoint(last_action))
     self.rewards.append(reward_from_events(self,events))
@@ -112,12 +109,7 @@ def reward_from_events(self, events):
 
 def action(self,p):
     if self.epsilon>np.random.rand():
-        prob=np.exp(self.temp*p) #assign botzmann probs
-        if np.sum(prob)==0. : #if all probs are too low, just assign standard values
-            prob=[0.2,0.2,0.2,0.2,0.1,0.1]
-        else:
-            prob=prob/np.sum(prob)
-        return np.random.choice([0,1,2,3,4,5], p=prob)
+        return np.random.choice([0,1,2,3,4,5], p=[0.2,0.2,0.2,0.2,0.1,0.1])
     else:
         return np.argmax(p)
 
