@@ -44,14 +44,14 @@ def strtoint(action):
         return 0
     if action=="RIGHT":
         return 1
-    if action=="Down":
+    if action=="DOWN":
         return 2
     if action=="LEFT":
         return 3
     if action=="WAIT":
         return 4
     if action=="BOMB":
-        return 
+        return 5
 
 def setup_training(self):
     self.gamma=0.6
@@ -61,31 +61,40 @@ def setup_training(self):
         self.model=buildnet()
     self.target=buildnet()
     self.target.set_weights(self.model.get_weights())
+    self.oldfields=[]
+    self.newfields=[]
+    self.actions=[]
+    self.rewards=[]
 
 def game_events_occurred(self, old_game_state, self_action, new_game_state, events):
     if not old_game_state==None:
-        newfield=transformfield(new_game_state)
-        oldfield=transformfield(old_game_state)
-        action=strtoint(self_action)
-        reward=reward_from_events(self,events)
-        qpred=self.model.predict(oldfield)
-        next=self.target.predict(newfield)
-        qpred[0][action]=reward+self.gamma*np.amax(next)
-        self.model.fit(oldfield,qpred,verbose=0)
+        self.oldfields.append(transformfield(old_game_state))
+        self.newfields.append(transformfield(new_game_state))
+        self.actions.append(strtoint(self_action))
+        self.rewards.append(reward_from_events(self,events))
     
 def end_of_round(self, last_game_state, last_action, events):
     if self.temp>0.01:
         self.temp=self.temp*0.99995
-    oldfield=transformfield(last_game_state)
-    action=strtoint(last_action)
-    reward=reward_from_events(self,events)
-    qpred=self.model.predict(oldfield)
-    qpred[0][action]=reward
-    self.model.fit(oldfield,qpred,verbose=0)
+    self.oldfields.append(transformfield(last_game_state))
+    self.actions.append(strtoint(last_action))
+    self.rewards.append(reward_from_events(self,events))
+    oldfields=np.asarray(self.oldfields).reshape(-1,49)
+    newfields=np.asarray(self.newfields).reshape(-1,49)
+    rewards=np.asarray(self.rewards)
+    actions=np.asarray(self.actions)
+    qpred=self.model.predict(oldfields)
+    next=self.target.predict(newfields)
+    qpred[-1][actions[-1]]=rewards[-1]
+    qpred[np.arange(len(qpred)-1),actions[:-1]]=rewards[:-1]+self.gamma*np.amax(next,axis=-1)
+    self.model.fit(oldfields,qpred,verbose=0)
     if last_game_state["round"]%10==0:
         self.model.save("mymodel")
-    self.target.set_weights(self.model.get_weights())
-
+        self.target.set_weights(self.model.get_weights())
+    self.oldfields=[]
+    self.newfields=[]
+    self.actions=[]
+    self.rewards=[]
     
 def reward_from_events(self, events):
     game_rewards = {
