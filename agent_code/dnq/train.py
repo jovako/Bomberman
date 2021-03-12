@@ -1,4 +1,3 @@
-from typing import List
 import events as e
 import numpy as np
 from tensorflow.keras import Model, Sequential
@@ -8,9 +7,7 @@ from tensorflow import convert_to_tensor as ct
 
 
 def transformfield(game_state):
-    if game_state==None:
-        return None
-    field=np.ones((7,7))
+    field=-np.ones((7,7)) 
     me=game_state["self"][3]
     xmin=max(me[0]-3,0)
     ymin=max(me[1]-3,0)
@@ -30,9 +27,10 @@ def transformfield(game_state):
             newfield[other[3]]=2
     field[fieldxmin:fieldxmax,fieldymin:fieldymax]=(game_state["field"]-game_state["explosion_map"]+newfield)[xmin:xmax,ymin:ymax]
     return field.reshape(1,-1)
+
 def buildnet():
     model=Sequential()
-    model.add(Input(shape=(7*7,)))
+    model.add(Input(shape=(49,)))
     model.add(Dense(50,activation="relu"))
     model.add(Dense(50,activation="relu"))
     model.add(Dense(6,activation="linear"))
@@ -55,7 +53,7 @@ def strtoint(action):
 
 def setup_training(self):
     self.gamma=0.6
-    self.temp=1
+    self.temp=10
     self.epsilon=0.15
     if self.neednew==True:
         self.model=buildnet()
@@ -85,7 +83,7 @@ def end_of_round(self, last_game_state, last_action, events):
     actions=np.asarray(self.actions)
     qpred=self.model.predict(oldfields)
     next=self.target.predict(newfields)
-    qpred[-1][actions[-1]]=rewards[-1]
+    qpred[-1,actions[-1]]=rewards[-1]
     qpred[np.arange(len(qpred)-1),actions[:-1]]=rewards[:-1]+self.gamma*np.amax(next,axis=-1)
     self.model.fit(oldfields,qpred,verbose=0)
     if last_game_state["round"]%10==0:
@@ -114,8 +112,8 @@ def reward_from_events(self, events):
 
 def action(self,p):
     if self.epsilon>np.random.rand():
-        prob=np.exp(self.temp*p)
-        if np.sum(prob)==0. :
+        prob=np.exp(self.temp*p) #assign botzmann probs
+        if np.sum(prob)==0. : #if all probs are too low, just assign standard values
             prob=[0.2,0.2,0.2,0.2,0.1,0.1]
         else:
             prob=prob/np.sum(prob)

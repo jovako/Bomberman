@@ -1,7 +1,6 @@
 import numpy as np
 import os
 from tensorflow.keras.models import load_model
-from tensorflow import convert_to_tensor as ct
 try:
     from agent_code.dnq.train import action
 except:
@@ -10,8 +9,6 @@ except:
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
 def transformfield(game_state):
-    if game_state==None:
-        return None
     field=np.ones((7,7))
     me=game_state["self"][3]
     xmin=max(me[0]-3,0)
@@ -36,7 +33,7 @@ def transformfield(game_state):
 def setup(self):
     if not os.path.isdir("mymodel"):
         self.neednew=True
-        print("neues model gebaut")
+        print("neues model gebaut\n\n\n")
     else:
         self.neednew=False
         self.model=load_model("mymodel")
