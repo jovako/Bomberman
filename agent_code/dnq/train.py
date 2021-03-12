@@ -1,4 +1,3 @@
-from collections import deque
 from typing import List
 import events as e
 import numpy as np
@@ -7,31 +6,35 @@ from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow import convert_to_tensor as ct
 
-TRANSITION_HISTORY_SIZE = 300
 
 def transformfield(game_state):
-        if game_state==None:
-            return None
-        bombs=game_state["bombs"]
-        me=game_state["self"]
-        others=game_state["others"]
-        bombfield=np.zeros((17,17))
-        playerfield=np.zeros((17,17))
-        for bomb in bombs:
-            bombfield[bomb[0]]=bomb[1]
-        playerfield[me[3]]=1
-        fieldstate=game_state["field"]-bombfield-game_state["explosion_map"]
-        for other in others:
-            if other[2]==True:
-                playerfield[other[3]]=-1
-        features=np.array([fieldstate,playerfield])
-        return ct(features.reshape(1,-1))
-
+    if game_state==None:
+        return None
+    field=np.ones((7,7))
+    me=game_state["self"][3]
+    xmin=max(me[0]-3,0)
+    ymin=max(me[1]-3,0)
+    xmax=min(me[0]+4,17)
+    ymax=min(me[1]+4,17)
+    fieldxmin=max(3-me[0],0)
+    fieldymin=max(3-me[1],0)
+    fieldxmax=min(20-me[0],7)
+    fieldymax=min(20-me[1],7)
+    bombs=game_state["bombs"]
+    others=game_state["others"]
+    newfield=np.zeros((17,17))
+    for bomb in bombs:
+        newfield[bomb[0]]=-bomb[1]
+    for other in others:
+        if other[2]==True:
+            newfield[other[3]]=2
+    field[fieldxmin:fieldxmax,fieldymin:fieldymax]=(game_state["field"]-game_state["explosion_map"]+newfield)[xmin:xmax,ymin:ymax]
+    return field.reshape(1,-1)
 def buildnet():
     model=Sequential()
-    model.add(Input(shape=(17*17*2,)))
-    model.add(Dense(600,activation="relu"))
-    model.add(Dense(600,activation="relu"))
+    model.add(Input(shape=(7*7,)))
+    model.add(Dense(50,activation="relu"))
+    model.add(Dense(50,activation="relu"))
     model.add(Dense(6,activation="linear"))
     model.compile(loss='mse', optimizer=Adam(learning_rate=0.01))
     return model
@@ -51,7 +54,6 @@ def strtoint(action):
         return 
 
 def setup_training(self):
-    self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
     self.gamma=0.6
     self.temp=1
     self.epsilon=0.15
@@ -60,33 +62,32 @@ def setup_training(self):
     self.target=buildnet()
     self.target.set_weights(self.model.get_weights())
 
-def game_events_occurred(self, old_game_state: dict, self_action, new_game_state: dict, events: List[str]):
-    self.transitions.append([old_game_state, self_action,new_game_state, reward_from_events(self, events)])
+def game_events_occurred(self, old_game_state, self_action, new_game_state, events):
+    if not old_game_state==None:
+        newfield=transformfield(new_game_state)
+        oldfield=transformfield(old_game_state)
+        action=strtoint(self_action)
+        reward=reward_from_events(self,events)
+        qpred=self.model.predict(oldfield)
+        next=self.target.predict(newfield)
+        qpred[0][action]=reward+self.gamma*np.amax(next)
+        self.model.fit(oldfield,qpred,verbose=0)
     
 def end_of_round(self, last_game_state, last_action, events):
-    self.transitions.append([last_game_state, last_action, None, reward_from_events(self, events)])
     if self.temp>0.01:
         self.temp=self.temp*0.99995
-    
-    for old,action,new,reward in self.transitions: 
-        if old==None:
-            continue 
-        newfield=transformfield(new)
-        oldfield=transformfield(old)
-        action=strtoint(action)
-        qpred=self.model.predict(oldfield)
-        if new == None:
-            qpred[0][action]=reward
-        else:
-            next=self.target.predict(newfield)
-            qpred[0][action]=reward+self.gamma*np.amax(next)
-        self.model.fit(oldfield,qpred,epochs=1,verbose=0)
+    oldfield=transformfield(last_game_state)
+    action=strtoint(last_action)
+    reward=reward_from_events(self,events)
+    qpred=self.model.predict(oldfield)
+    qpred[0][action]=reward
+    self.model.fit(oldfield,qpred,verbose=0)
     if last_game_state["round"]%10==0:
         self.model.save("mymodel")
     self.target.set_weights(self.model.get_weights())
 
     
-def reward_from_events(self, events: List[str]) -> int:
+def reward_from_events(self, events):
     game_rewards = {
         e.COIN_COLLECTED: 100,
         e.KILLED_OPPONENT: 300,
