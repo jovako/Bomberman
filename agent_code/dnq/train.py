@@ -6,31 +6,33 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow import convert_to_tensor as ct
 
 
-def transformfield(game_state):
-    field=-np.ones((7,7)) 
+def transformfield(self,game_state):
+    dist=self.dist
+    field=np.ones((2*dist+1,2*dist+1))
     me=game_state["self"][3]
-    xmin=max(me[0]-3,0)
-    ymin=max(me[1]-3,0)
-    xmax=min(me[0]+4,17)
-    ymax=min(me[1]+4,17)
-    fieldxmin=max(3-me[0],0)
-    fieldymin=max(3-me[1],0)
-    fieldxmax=min(20-me[0],7)
-    fieldymax=min(20-me[1],7)
+    xmin=max(me[0]-dist,0)
+    ymin=max(me[1]-dist,0)
+    xmax=min(me[0]+dist+1,17)
+    ymax=min(me[1]+dist+1,17)
+    fieldxmin=max(dist-me[0],0)
+    fieldymin=max(dist-me[1],0)
+    fieldxmax=min(17+dist-me[0],2*dist+1)
+    fieldymax=min(17+dist-me[1],2*dist+1)
     bombs=game_state["bombs"]
     others=game_state["others"]
     newfield=np.zeros((17,17))
+    newfield[tuple(zip(*game_state["coins"]))]=4
     for bomb in bombs:
-        newfield[bomb[0]]=-bomb[1]
+        newfield[bomb[0]]=-5+bomb[1]
     for other in others:
         if other[2]==True:
             newfield[other[3]]=2
-    field[fieldxmin:fieldxmax,fieldymin:fieldymax]=(game_state["field"]-game_state["explosion_map"]+newfield)[xmin:xmax,ymin:ymax]
+    field[fieldxmin:fieldxmax,fieldymin:fieldymax]=(game_state["field"]+newfield)[xmin:xmax,ymin:ymax]
     return field.reshape(1,-1)
 
-def buildnet():
+def buildnet(self):
     model=Sequential()
-    model.add(Input(shape=(49,)))
+    model.add(Input(shape=(self.dim,)))
     model.add(Dense(50,activation="relu"))
     model.add(Dense(50,activation="relu"))
     model.add(Dense(6,activation="linear"))
@@ -55,8 +57,8 @@ def setup_training(self):
     self.gamma=0.6
     self.epsilon=0.2
     if self.neednew==True:
-        self.model=buildnet()
-    self.target=buildnet()
+        self.model=buildnet(self)
+    self.target=buildnet(self)
     self.target.set_weights(self.model.get_weights())
     self.oldfields=[]
     self.newfields=[]
@@ -65,17 +67,17 @@ def setup_training(self):
 
 def game_events_occurred(self, old_game_state, self_action, new_game_state, events):
     if not old_game_state==None:
-        self.oldfields.append(transformfield(old_game_state))
-        self.newfields.append(transformfield(new_game_state))
+        self.oldfields.append(transformfield(self,old_game_state))
+        self.newfields.append(transformfield(self,new_game_state))
         self.actions.append(strtoint(self_action))
         self.rewards.append(reward_from_events(self,events))
     
 def end_of_round(self, last_game_state, last_action, events):
-    self.oldfields.append(transformfield(last_game_state))
+    self.oldfields.append(transformfield(self,last_game_state))
     self.actions.append(strtoint(last_action))
     self.rewards.append(reward_from_events(self,events))
-    oldfields=np.asarray(self.oldfields).reshape(-1,49)
-    newfields=np.asarray(self.newfields).reshape(-1,49)
+    oldfields=np.asarray(self.oldfields).reshape(-1,self.dim)
+    newfields=np.asarray(self.newfields).reshape(-1,self.dim)
     rewards=np.asarray(self.rewards)
     actions=np.asarray(self.actions)
     qpred=self.model.predict(oldfields)
