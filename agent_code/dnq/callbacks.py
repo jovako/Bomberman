@@ -4,7 +4,7 @@ from tensorflow.keras.models import load_model
 try:
     from agent_code.dnq.train import action
 except:
-    pass
+    print("failed")
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 

@@ -5,7 +5,6 @@ from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow import convert_to_tensor as ct
 
-
 def transformfield(self,game_state):
     dist=self.dist
     field=np.ones((2*dist+1,2*dist+1))
@@ -33,8 +32,8 @@ def transformfield(self,game_state):
 def buildnet(self):
     model=Sequential()
     model.add(Input(shape=(self.dim,)))
-    model.add(Dense(50,activation="relu"))
-    model.add(Dense(50,activation="relu"))
+    model.add(Dense(100,activation="relu"))
+    model.add(Dense(100,activation="relu"))
     model.add(Dense(6,activation="linear"))
     model.compile(loss='mse', optimizer=Adam(learning_rate=0.01))
     return model
