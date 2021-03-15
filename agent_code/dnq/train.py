@@ -54,7 +54,7 @@ def strtoint(action):
 
 def setup_training(self):
     self.gamma=0.6
-    self.epsilon=0.2
+    self.epsilon=0.15
     if self.neednew==True:
         self.model=buildnet(self)
     self.target=buildnet(self)
@@ -111,7 +111,7 @@ def reward_from_events(self, events):
 
 def action(self,p):
     if self.epsilon>np.random.rand():
-        return np.random.choice([0,1,2,3,4,5], p=[0.225,0.225,0.225,0.225,0.09,0.01])
+        return np.random.choice([0,1,2,3,4,5], p=[0.25,0.25,0.25,0.25,0,0])
     else:
         return np.argmax(p)
 
