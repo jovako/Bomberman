@@ -10,7 +10,7 @@ ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
 def transformfield(self,game_state):
     dist=self.dist
-    field=np.ones((2*dist+1,2*dist+1))
+    field=-np.ones((2*dist+1,2*dist+1))
     me=game_state["self"][3]
     xmin=max(me[0]-dist,0)
     ymin=max(me[1]-dist,0)

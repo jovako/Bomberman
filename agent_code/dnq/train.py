@@ -85,6 +85,7 @@ def end_of_round(self, last_game_state, last_action, events):
     qpred[np.arange(len(qpred)-1),actions[:-1]]=rewards[:-1]+self.gamma*np.amax(next,axis=-1)
     self.model.fit(oldfields,qpred,verbose=0)
     if last_game_state["round"]%10==0:
+        print(np.sum(rewards))
         self.model.save("mymodel")
         self.target.set_weights(self.model.get_weights())
     self.oldfields=[]
@@ -96,10 +97,10 @@ def reward_from_events(self, events):
     game_rewards = {
         e.COIN_COLLECTED: 100,
         e.KILLED_OPPONENT: 300,
-        e.KILLED_SELF: -300,
+        e.KILLED_SELF: -10000,
         e.GOT_KILLED: -250,
-        e.INVALID_ACTION: -100,
-        e.WAITED: -50,
+        e.INVALID_ACTION: -10,
+        e.WAITED: -5,
         e.CRATE_DESTROYED: 50
     }
     reward_sum = 0
@@ -110,7 +111,7 @@ def reward_from_events(self, events):
 
 def action(self,p):
     if self.epsilon>np.random.rand():
-        return np.random.choice([0,1,2,3,4,5], p=[0.2,0.2,0.2,0.2,0.1,0.1])
+        return np.random.choice([0,1,2,3,4,5], p=[0.225,0.225,0.225,0.225,0.09,0.01])
     else:
         return np.argmax(p)
 
