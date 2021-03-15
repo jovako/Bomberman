@@ -1,4 +1,5 @@
 from time import time
+from functools import cached_property
 
 import settings as s
 from fallbacks import pygame
@@ -47,6 +48,7 @@ class Bomb(Item):
         self.color = color
         self.custom_sprite = custom_sprite
 
+    @cached_property
     def avatar(self):
         if self.custom_sprite:
             return self.custom_sprite
