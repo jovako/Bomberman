@@ -35,7 +35,7 @@ def buildnet(self):
     model.add(Dense(100,activation="relu"))
     model.add(Dense(100,activation="relu"))
     model.add(Dense(6,activation="linear"))
-    model.compile(loss='mse', optimizer=Adam(learning_rate=0.01))
+    model.compile(loss='mse', optimizer=Adam(learning_rate=0.07))
     return model
 
 def strtoint(action):

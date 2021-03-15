@@ -1,4 +1,3 @@
-from functools import cached_property
 from time import time
 
 import settings as s
@@ -48,7 +47,6 @@ class Bomb(Item):
         self.color = color
         self.custom_sprite = custom_sprite
 
-    @cached_property
     def avatar(self):
         if self.custom_sprite:
             return self.custom_sprite
