@@ -14,7 +14,7 @@ def act(self, game_state):
     action=ACTIONS[np.argmax(p)]
     self.last_actions.append(action)
     if len(self.last_actions)>5: #simple loop-breaker
-        if self.last_actions[-5:]==["UP","DOWN","UP","DOWN","UP"] or self.last_actions[-4:]==["DOWN","UP","DOWN","UP","DOWN"] or self.last_actions[-4:]==["RIGHT","LEFT","RIGHT","LEFT","RIGHT"] or self.last_actions[-4:]==["LEFT","RIGHT","LEFT","RIGHT","LEFT"]:
+        if self.last_actions[-5:]==["UP","DOWN","UP","DOWN","UP"] or self.last_actions[-5:]==["DOWN","UP","DOWN","UP","DOWN"] or self.last_actions[-5:]==["RIGHT","LEFT","RIGHT","LEFT","RIGHT"] or self.last_actions[-5:]==["LEFT","RIGHT","LEFT","RIGHT","LEFT"] or self.last_actions[-4:]==["WAIT","WAIT","WAIT","WAIT"]:
             self.last_actions=[]
             return "BOMB"
 
