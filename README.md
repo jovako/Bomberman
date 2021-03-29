@@ -11,12 +11,13 @@ reduced: rl agent using the advanced rewards and minimal features, exploring via
 
 test4 to test11: agents trained on rule\_based data with number indicating range of vision, subfield1 features
 coincollecter: agent trained on rule_based with 4 vision and coin coordinates, plots in report
-norl.py: code for training coincollecter
+norl.py: code for training the coincollecter
+
 testminimal: agents trained on minimal1 to minimal8 data
 testrewards: agent trained on rewards1 to rewards8 data
 testweights: agent trained on weighted rule\_based data, subfield2 features
 
-testnearest5: agent trained on rule\_based data, vision 5, subfield2 features. Our final agent
+testnearest5: agent trained on rule\_based data, vision 5, subfield2 features. Our final agent we then call "Klaus"
 
 rule: rule\_based\_agent, just renamed for easier calling
 
